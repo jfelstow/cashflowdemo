@@ -151,6 +151,36 @@ table.t .pill{display:inline-block;padding:2px 9px;border-radius:4px;background:
   .legend{font-size:11px;gap:10px}
 }
 @media(max-width:400px){ .kpis{grid-template-columns:1fr} }
+/* ===== Forecasting + Path views ===== */
+.nav-divider{height:1px;background:rgba(245,243,255,.10);margin:8px 12px}
+.forecast-controls{display:flex;align-items:center;gap:24px;flex-wrap:wrap;margin:16px 0 22px;background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 18px;box-shadow:var(--shadow)}
+.forecast-controls .control-group{display:flex;align-items:center;gap:10px}
+.forecast-controls .control-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)}
+.scenario-blurb{flex:1;font-size:13px;color:var(--text-muted);font-style:italic;text-align:right}
+.toggle.scenario-toggle button.on,.toggle.hire-toggle button.on,.toggle.capital-toggle button.on,.toggle.cost-toggle button.on{background:var(--primary);color:var(--brand-cream)}
+#view-pathway{counter-reset:step}
+.plan-list{margin:0;padding:0;list-style:none}
+.plan-list li{position:relative;padding:11px 0 11px 40px;border-bottom:1px solid var(--border-soft);font-size:13.5px;line-height:1.5;color:var(--text)}
+.plan-list li:last-child{border-bottom:0}
+.plan-list li:before{counter-increment:step;content:counter(step);position:absolute;left:0;top:10px;width:25px;height:25px;border-radius:50%;background:var(--brand-soft);color:var(--brand-deep);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.plan-list b{font-weight:700}
+.save{color:var(--primary);font-weight:700;white-space:nowrap}
+.cost{color:var(--neg);font-weight:700;white-space:nowrap}
+.banner.risk{background:var(--neg-soft);border-color:#F0B6AE;color:#7A2E1A}
+.banner.risk .dot{background:var(--neg)}
+.banner.risk b{color:#7A2E1A}
+table.t td.pos{color:var(--primary);font-weight:700}
+table.t td.negv{color:var(--neg);font-weight:700}
+table.t tr.total td{font-weight:800;background:var(--brand-soft);color:var(--brand-deep);border-top:2px solid var(--primary)}
+table.t tr.subtotal td{font-weight:700;border-top:1px solid var(--border)}
+@media(max-width:1100px){ .nav-divider{display:none} }
+@media(max-width:640px){
+  .forecast-controls{flex-direction:column;align-items:stretch;gap:10px;padding:12px 14px}
+  .forecast-controls .control-group{justify-content:space-between}
+  .scenario-blurb{text-align:left;flex-basis:100%}
+  .toggle{flex-wrap:wrap}
+  .toggle button{flex:1}
+}
 </style>
 </head>
 <body>
@@ -162,11 +192,14 @@ table.t .pill{display:inline-block;padding:2px 9px;border-radius:4px;background:
     </div>
     <div class="client-pill"><span>13-Week Forecast</span><span class="chev">&#x25BE;</span></div>
     <nav class="nav">
-      <a class="active" href="#top"><span class="ic">&#x25A3;</span> Dashboard</a>
+      <a class="active" data-view="tactical" href="#top"><span class="ic">&#x25A3;</span> Dashboard</a>
       <a href="#cf"><span class="ic">&#x25A4;</span> Cash Flow</a>
       <a href="#outflows"><span class="ic">&#x2198;</span> Disbursements</a>
       <a href="#simulator"><span class="ic">&#x2295;</span> Spend Simulator</a>
       <a href="#debt"><span class="ic">&#x229F;</span> Debt Schedule</a>
+      <div class="nav-divider"></div>
+      <a data-view="forecasting" href="#"><span class="ic">&#x2605;</span> Forecasting</a>
+      <a data-view="pathway" href="#"><span class="ic">&#x2197;</span> Path to Positive</a>
     </nav>
     <div class="sidebar-foot">
       <strong>Prepared by</strong>Felstow Bookkeeping &amp; Consulting
@@ -174,6 +207,7 @@ table.t .pill{display:inline-block;padding:2px 9px;border-radius:4px;background:
     </div>
   </aside>
   <main id="top">
+  <div id="view-tactical">
     <div class="topbar">
       <div>
         <div class="page-title">13-Week Cash Flow</div>
@@ -313,6 +347,215 @@ table.t .pill{display:inline-block;padding:2px 9px;border-radius:4px;background:
       <span>Meridian Studio (Sample) &middot; 13-Week Cash Flow Dashboard &middot; Felstow Bookkeeping &amp; Consulting</span>
       <span>Generated <span id="genTs"></span></span>
     </div>
+  </div><!-- /view-tactical -->
+
+  <!-- ============== FORECASTING VIEW ============== -->
+  <div id="view-forecasting" hidden>
+    <div class="topbar">
+      <div>
+        <div class="page-title">Strategic Forecast</div>
+        <div class="window-info">12-month growth model &nbsp;&middot;&nbsp; Horizon: <b id="fcStart"></b> through <b id="fcEnd"></b> &nbsp;&middot;&nbsp; <span class="muted">illustrative</span></div>
+      </div>
+    </div>
+
+    <div class="exec">
+      <span class="label">The Question This Forecast Answers</span>
+      <span>Meridian can win a <b>$35K/month enterprise retainer</b> starting Q4 &mdash; but it needs two senior hires <b>now</b>, ahead of the revenue. Does the cash math work, and is a line of credit needed to bridge the gap? Toggle the levers below to compare against simply staying with the current book of business.</span>
+    </div>
+
+    <div class="forecast-controls">
+      <div class="control-group">
+        <span class="control-label">Revenue</span>
+        <div class="toggle scenario-toggle">
+          <button class="on" data-scenario="current">Current Book</button>
+          <button data-scenario="win">+ Enterprise Win</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="control-label">Hiring</span>
+        <div class="toggle hire-toggle">
+          <button class="on" data-hire="phased">Phased</button>
+          <button data-hire="now">Hire Now</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="control-label">Capital</span>
+        <div class="toggle capital-toggle">
+          <button class="on" data-capital="none">No Draw</button>
+          <button data-capital="loc">$150K Line of Credit</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <span class="control-label">Cost Discipline</span>
+        <div class="toggle cost-toggle">
+          <button class="on" data-cost="current">Current</button>
+          <button data-cost="tighten">Tighten ($2.5K/wk)</button>
+        </div>
+      </div>
+      <div class="scenario-blurb" id="scenarioBlurb"></div>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi"><div class="kpi-label">&#x25C7; Starting Cash</div><div class="kpi-value" id="fcKStart"></div><div class="kpi-sub">Operating checking today</div></div>
+      <div class="kpi"><div class="kpi-label">&#x21A7; Lowest Projected</div><div class="kpi-value" id="fcKLow"></div><div class="kpi-sub" id="fcKLowSub"></div></div>
+      <div class="kpi"><div class="kpi-label">&#x231A; Cash Runway</div><div class="kpi-value" id="fcKRunway"></div><div class="kpi-sub" id="fcKRunwaySub"></div></div>
+      <div class="kpi"><div class="kpi-label">&#x1F3C1; Ending Cash (12 mo)</div><div class="kpi-value" id="fcKFinal"></div><div class="kpi-sub" id="fcKFinalSub"></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title">Cash Trajectory &mdash; Next 12 Months</div>
+          <div class="card-sub">Ending balance by week. Your selected plan vs. staying with the current book.</div>
+        </div>
+      </div>
+      <div class="card-body"><div class="chart-wrap tall"><canvas id="chartForecast"></canvas></div></div>
+    </div>
+
+    <div class="section-title">Weekly Cash Components <span class="ann">stacked inflows above zero, outflows below</span></div>
+    <div class="card">
+      <div class="card-body">
+        <div class="chart-wrap"><canvas id="chartForecastFlow"></canvas></div>
+        <div class="legend">
+          <span><span class="sw" style="background:#4F46E5"></span>Retainer Revenue</span>
+          <span><span class="sw" style="background:#818CF8"></span>Project Revenue</span>
+          <span><span class="sw" style="background:#14B8A6"></span>Enterprise Retainer</span>
+          <span><span class="sw" style="background:#312E81"></span>Line of Credit In</span>
+          <span><span class="sw" style="background:#F59E0B"></span>Recurring Outflows</span>
+          <span><span class="sw" style="background:#D97706"></span>New Hire Cost</span>
+          <span><span class="sw" style="background:#DC2626"></span>Line of Credit Service</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">Capital &amp; Financing <span class="ann">line of credit to bridge the hire-ahead gap</span></div>
+    <div class="card">
+      <table class="t" id="locTable">
+        <thead><tr><th>Item</th><th>Amount</th><th>Timing</th><th>Notes</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="section-title">Key Milestones</div>
+    <div class="card">
+      <table class="t" id="milestonesTable">
+        <thead><tr><th>Date</th><th>Milestone</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="section-title">Model Assumptions</div>
+    <div class="card">
+      <table class="t" id="assumptionsTable">
+        <thead><tr><th>Assumption</th><th>Value</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="foot">
+      <span>Meridian Studio (Sample) &middot; Strategic Forecast</span>
+      <span>Illustrative data only</span>
+    </div>
+  </div><!-- /view-forecasting -->
+
+  <!-- ============== PATH TO POSITIVE VIEW ============== -->
+  <div id="view-pathway" hidden>
+    <div class="topbar">
+      <div>
+        <div class="page-title">Path to Positive Cash Flow</div>
+        <div class="window-info">The locked recommendation &middot; Enterprise Win + Hire Now + $150K line of credit + cost discipline</div>
+      </div>
+    </div>
+
+    <div class="exec">
+      <span class="label">The Locked Plan</span>
+      <span>The 13-week window runs <b>Net &minus;$22,600</b> &mdash; fixed payroll against lumpy project revenue. The fix isn&#x2019;t cutting to the bone; it&#x2019;s <b>growing into the fixed cost.</b> Win the enterprise retainer, staff it now, bridge the gap with a $150K line of credit, and hold costs. With the bridge in place, cash never dips below your starting line &mdash; lowest <b id="pathLow">&mdash;</b> <span id="pathLowWk" class="muted"></span> &mdash; and grows to <b id="pathEnd">&mdash;</b> in 12 months. Without the bridge, hiring ahead of the client pulls you to ~$107K (and through the floor with no cost discipline). Works only if all three legs hold: the client signs, the hires perform, and spend stays tight.</span>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi"><div class="kpi-label">&#x21A7; Lowest Projected</div><div class="kpi-value" id="pathKLow"></div><div class="kpi-sub" id="pathKLowSub"></div></div>
+      <div class="kpi"><div class="kpi-label">&#x1F3C1; Ending Cash (12 mo)</div><div class="kpi-value" id="pathKEnd"></div><div class="kpi-sub">Locked plan trajectory</div></div>
+      <div class="kpi"><div class="kpi-label">&#x25B2; Net Monthly Improvement</div><div class="kpi-value">$12,400</div><div class="kpi-sub">Operating run-rate at full enterprise billing</div></div>
+      <div class="kpi"><div class="kpi-label">&#x2630; The Plan</div><div class="kpi-value">12 steps</div><div class="kpi-sub">This month &middot; Q3 &middot; Q4 &middot; Next year</div></div>
+    </div>
+
+    <div class="section-title">This Month</div>
+    <div class="card"><div class="card-body"><ol class="plan-list">
+      <li><b>Close the enterprise retainer.</b> Get the SOW signed at <b>$35K/month</b>, 12-month term, Net 30. Everything downstream depends on this signature. <span class="save">+$35,000/mo</span></li>
+      <li><b>Open a $150K line of credit</b> before you need it. Draw $150K in week 6 to bridge payroll until enterprise cash lands. <span class="cost">~$1,500/wk service</span></li>
+      <li><b>Make the two senior hires</b> (account director + senior designer). Start them now so they&#x2019;re ramped before Q4 delivery. <span class="cost">+$4,600/wk</span></li>
+      <li><b>Tighten discretionary spend</b> &mdash; pause non-essential software, scale back travel, defer the office buildout. <span class="save">+$2,500/wk</span></li>
+    </ol></div></div>
+
+    <div class="section-title">Q3 (Jul &ndash; Sep)</div>
+    <div class="card"><div class="card-body"><ol class="plan-list">
+      <li><b>Onboard and ramp the new hires</b> on existing accounts first, so they&#x2019;re productive before the enterprise work begins.</li>
+      <li><b>Pull project receivables forward.</b> Offer a small early-pay discount to smooth the late-July trough &mdash; the tightest point in the year.</li>
+      <li><b>Stand up enterprise delivery</b> &mdash; scope, staffing plan, and kickoff so Q4 billing starts on time.</li>
+    </ol></div></div>
+
+    <div class="banner risk">
+      <span class="dot"></span>
+      <div>
+        <b>The risk to watch</b>
+        Hiring ahead of revenue is the whole bet. If the enterprise client slips a quarter or churns early, you&#x2019;re carrying $4,600/wk of new payroll plus line-of-credit service against the current book. The line of credit is the safety margin &mdash; don&#x2019;t spend it on anything but this bridge.
+      </div>
+    </div>
+
+    <div class="section-title">Q4 (Oct &ndash; Dec)</div>
+    <div class="card"><div class="card-body"><ol class="plan-list">
+      <li><b>Enterprise billing begins.</b> Revenue ramps to the full $35K/month run-rate over the quarter.</li>
+      <li><b>First enterprise cash arrives</b> (Net 30 on the first deliverables). This is the week the whole plan has been building toward.</li>
+      <li><b>Begin repaying the line of credit</b> once enterprise cash is reliably flowing &mdash; target a zero balance within the year.</li>
+    </ol></div></div>
+
+    <div class="section-title">Next Year</div>
+    <div class="card"><div class="card-body"><ol class="plan-list">
+      <li><b>Line of credit repaid</b>, cash building. Revisit owner distributions and the deferred office buildout from a position of strength.</li>
+      <li><b>Lock in a second enterprise account</b> using the proven delivery model &mdash; now you have the team and the playbook.</li>
+    </ol></div></div>
+
+    <div class="row r-2-1">
+      <div>
+        <div class="section-title">Net Monthly Cash Impact</div>
+        <div class="card"><table class="t">
+          <thead><tr><th>Lever</th><th class="num">$/mo</th></tr></thead>
+          <tbody>
+            <tr><td class="label">Enterprise retainer (full run-rate)</td><td class="num pos">$35,000</td></tr>
+            <tr><td class="label">Cost discipline (tighten)</td><td class="num pos">$10,833</td></tr>
+            <tr class="subtotal"><td>Gross monthly improvement</td><td class="num pos">$45,833</td></tr>
+            <tr><td class="label">Less: two senior hires</td><td class="num negv">&minus;$19,933</td></tr>
+            <tr><td class="label">Less: enterprise delivery costs</td><td class="num negv">&minus;$7,000</td></tr>
+            <tr><td class="label">Less: line of credit service</td><td class="num negv">&minus;$6,500</td></tr>
+            <tr class="total"><td>Net monthly improvement</td><td class="num">$12,400</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+      <div>
+        <div class="section-title">If Any of These Skip</div>
+        <div class="card"><table class="t">
+          <thead><tr><th>Scenario</th><th>Impact</th></tr></thead>
+          <tbody>
+            <tr><td class="label">Client doesn&#x2019;t sign</td><td class="negv">Carrying new payroll for nothing</td></tr>
+            <tr><td class="label">Skip the line of credit</td><td class="negv">Breaches the floor in the trough</td></tr>
+            <tr><td class="label">Hire phased instead of now</td><td class="negv">Team not ramped for Q4 delivery</td></tr>
+            <tr><td class="label">Skip cost discipline</td><td class="negv">Trough deepens ~$30K</td></tr>
+            <tr><td class="label">Client churns early</td><td class="negv">Back to drawdown + debt service</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <div class="exec" style="margin-top:22px">
+      <span class="label">Bottom Line</span>
+      <span>This is a growth squeeze, not a survival one. You borrow to staff ahead of a signed client, carry the two new salaries through the summer on the bridge, and come out the other side at a <b>$12,400/month</b> better operating run-rate &mdash; ending the year around <b id="pathEnd3">&mdash;</b>, versus bleeding toward your floor if you simply coast. If the client signature slips, pause the hiring and re-plan before drawing the line of credit &mdash; not after.</span>
+    </div>
+
+    <div class="foot">
+      <span>Meridian Studio (Sample) &middot; Path to Positive Cash Flow</span>
+      <span>See the <b>Forecasting</b> tab &rarr; Enterprise Win + Hire Now + $150K + Tighten</span>
+    </div>
+  </div><!-- /view-pathway -->
   </main>
 </div>
 
@@ -473,7 +716,7 @@ function renderTactical() {
   const burnWeekly = outflowSum / H;
   const headroom   = minEnd - DATA.min_cash;
 
-  document.querySelector('.page-title').textContent = H + '-Week Cash Flow';
+  document.querySelector('#view-tactical .page-title').textContent = H + '-Week Cash Flow';
   document.getElementById('winStart').textContent = dShort(DATA.week_dates[0]) + ', ' + (new Date(DATA.week_dates[0])).getUTCFullYear();
   document.getElementById('winEnd').textContent   = dShort(DATA.week_dates[H-1]) + ', ' + (new Date(DATA.week_dates[H-1])).getUTCFullYear();
 
@@ -826,6 +1069,225 @@ renderTactical();
   });
   render();
 })();
+
+// ============================================================================
+// STRATEGIC FORECAST — parametric 12-month model (52 weeks). All fabricated.
+// Models the decision: win a $35K/mo enterprise retainer that requires hiring
+// two seniors ahead of the revenue, optionally bridged by a $150K line of credit.
+// ============================================================================
+const FC = (function(){
+  const N = 52;
+  const start = new Date(Date.UTC(2026,4,29));
+  const weeks = [];
+  for(let i=0;i<N;i++){ const d=new Date(start); d.setUTCDate(start.getUTCDate()+i*7); weeks.push(d.toISOString().slice(0,10)); }
+  const startingCash = 140000, minCash = 85000;
+
+  const retainerBase = i => 42000 + 80*i;
+  const summerDip   = i => 7000*Math.exp(-Math.pow(i-7,2)/9);
+  const projectBase = i => Math.max(3000, 17000 + 6500*Math.sin(i/3.0) - summerDip(i));
+  const fixedBase   = i => 53000 + 60*i;
+
+  const enterpriseRev = (i,win) => (!win || i<22) ? 0 : Math.min(8077, 8077*(i-21)/4);
+  const hireCost = (i,hire) => (i >= (hire==='now'?4:20)) ? 4600 : 0;
+  const tightenSave = (i,cost) => (cost==='tighten' && i>=2) ? 2500 : 0;
+  const locDraw = (i,cap) => (cap==='loc' && i===9) ? 150000 : 0;
+  const locService = (i,cap) => (cap==='loc' && i>=13) ? 1500 : 0;
+
+  function build(o){
+    let bal = startingCash; const ending=[], comps=[];
+    for(let i=0;i<N;i++){
+      const ret=retainerBase(i), proj=projectBase(i), ent=enterpriseRev(i,o.win), draw=locDraw(i,o.cap);
+      const inflow = ret+proj+ent+draw;
+      const direct = 0.30*proj + 0.20*ent;
+      const fixed  = fixedBase(i) - tightenSave(i,o.cost);
+      const hireC  = hireCost(i,o.hire), locS = locService(i,o.cap);
+      bal += inflow - (direct+fixed+hireC+locS);
+      ending.push(Math.round(bal));
+      comps.push({ret:Math.round(ret),proj:Math.round(proj),ent:Math.round(ent),draw,
+                  recur:Math.round(direct+fixed),hireC,locS});
+    }
+    return {ending, comps};
+  }
+  return {N, weeks, startingCash, minCash, build};
+})();
+
+let fcScenario='current', fcHire='phased', fcCapital='none', fcCost='current';
+const fcOpts = () => ({win:fcScenario==='win', hire:fcHire, cap:fcCapital, cost:fcCost});
+const FC_BASELINE = {win:false, hire:'phased', cap:'none', cost:'current'};
+
+document.getElementById('fcStart').textContent = dShort(FC.weeks[0])+', '+(new Date(FC.weeks[0])).getUTCFullYear();
+document.getElementById('fcEnd').textContent   = dShort(FC.weeks[FC.N-1])+', '+(new Date(FC.weeks[FC.N-1])).getUTCFullYear();
+const fcLabels = FC.weeks.map((d,i)=> (i%4===0)? dShort(d) : '');
+
+const chartForecast = new Chart(document.getElementById('chartForecast'), {
+  type:'line',
+  data:{ labels:fcLabels, datasets:[
+    {label:'Current Book', data:[], borderColor:'#94A3B8', backgroundColor:'rgba(148,163,184,.06)', fill:false, tension:.25, borderWidth:2, pointRadius:0},
+    {label:'Selected Plan', data:[], borderColor:'#4F46E5', backgroundColor:'rgba(79,70,229,.10)', fill:'+1', tension:.25, borderWidth:2.5, pointRadius:0},
+    {label:'Min Threshold', data:Array(FC.N).fill(FC.minCash), borderColor:'#DC2626', borderDash:[6,4], borderWidth:1.5, pointRadius:0, fill:false},
+    {label:'Zero', data:Array(FC.N).fill(0), borderColor:'#9CA3AF', borderDash:[2,4], borderWidth:1, pointRadius:0, fill:false}
+  ]},
+  options:{responsive:true, maintainAspectRatio:false, interaction:{mode:'nearest',intersect:false},
+    plugins:{legend:{display:true,position:'bottom',labels:{font:{family:'Assistant',size:11},boxWidth:12}},
+             tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmtSigned(c.parsed.y), title:c=>'Week ending '+dShort(FC.weeks[c[0].dataIndex])}}},
+    scales:{y:{ticks:{callback:v=>'$'+(v/1000).toFixed(0)+'k',color:'#6B6B6B',font:{family:'Assistant',size:11}},grid:{color:'#F0F1F8'}},
+            x:{ticks:{color:'#6B6B6B',font:{family:'Assistant',size:10},autoSkip:false,maxRotation:0},grid:{display:false}}}}
+});
+
+const chartForecastFlow = new Chart(document.getElementById('chartForecastFlow'), {
+  type:'bar', data:{labels:fcLabels, datasets:[]},
+  options:{responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmtSigned(Math.abs(c.parsed.y)), title:c=>'Week ending '+dShort(FC.weeks[c[0].dataIndex])}}},
+    scales:{x:{stacked:true,ticks:{color:'#6B6B6B',font:{family:'Assistant',size:10},autoSkip:false,maxRotation:0},grid:{display:false}},
+            y:{stacked:true,ticks:{callback:v=>'$'+(v/1000).toFixed(0)+'k',color:'#6B6B6B',font:{family:'Assistant',size:11}},grid:{color:'#F0F1F8'}}}}
+});
+
+function renderForecast(){
+  const active = FC.build(fcOpts());
+  const baseline = FC.build(FC_BASELINE);
+  const ending = active.ending;
+
+  document.getElementById('fcKStart').textContent = fmt(FC.startingCash);
+  const low = Math.min(...ending), lowIdx = ending.indexOf(low);
+  const kLow = document.getElementById('fcKLow');
+  kLow.textContent = fmtSigned(low);
+  kLow.className = 'kpi-value ' + (low<0?'neg':low<FC.minCash?'warn':'pos');
+  document.getElementById('fcKLowSub').textContent = 'Week of '+dShort(FC.weeks[lowIdx]);
+
+  const breachIdx = ending.findIndex(v=>v<FC.minCash);
+  const kRun = document.getElementById('fcKRunway');
+  if(breachIdx===-1){ kRun.textContent='12+ months'; kRun.className='kpi-value pos'; document.getElementById('fcKRunwaySub').textContent='No breach in horizon'; }
+  else { kRun.textContent=breachIdx+' weeks'; kRun.className='kpi-value '+(breachIdx<=16?'neg':'warn'); document.getElementById('fcKRunwaySub').textContent='Floor breach week of '+dShort(FC.weeks[breachIdx]); }
+
+  const final = ending[ending.length-1];
+  const kFinal = document.getElementById('fcKFinal');
+  kFinal.textContent = fmtSigned(final);
+  kFinal.className = 'kpi-value '+(final<0?'neg':final<FC.minCash?'warn':'pos');
+  document.getElementById('fcKFinalSub').textContent = (final>baseline.ending[baseline.ending.length-1]?'+':'') + fmt(final-baseline.ending[baseline.ending.length-1]) + ' vs current book';
+
+  const parts=[];
+  parts.push(fcScenario==='win'?'enterprise win':'current book');
+  parts.push(fcHire==='now'?'hire now':'phased hiring');
+  parts.push(fcCapital==='loc'?'$150K LOC':'no draw');
+  if(fcCost==='tighten') parts.push('tighten');
+  document.getElementById('scenarioBlurb').textContent = parts.join(' · ');
+
+  chartForecast.data.datasets[0].data = baseline.ending;
+  chartForecast.data.datasets[1].data = ending;
+  chartForecast.update();
+
+  const c = active.comps;
+  chartForecastFlow.data.datasets = [
+    {label:'Retainer Revenue', data:c.map(x=>x.ret), backgroundColor:'#4F46E5', stack:'in'},
+    {label:'Project Revenue', data:c.map(x=>x.proj), backgroundColor:'#818CF8', stack:'in'},
+    {label:'Enterprise Retainer', data:c.map(x=>x.ent), backgroundColor:'#14B8A6', stack:'in'},
+    {label:'Line of Credit In', data:c.map(x=>x.draw), backgroundColor:'#312E81', stack:'in'},
+    {label:'Recurring Outflows', data:c.map(x=>-x.recur), backgroundColor:'#F59E0B', stack:'out'},
+    {label:'New Hire Cost', data:c.map(x=>-x.hireC), backgroundColor:'#D97706', stack:'out'},
+    {label:'Line of Credit Service', data:c.map(x=>-x.locS), backgroundColor:'#DC2626', stack:'out'}
+  ];
+  chartForecastFlow.update();
+}
+
+document.querySelectorAll('.scenario-toggle button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.scenario-toggle button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+  fcScenario=b.getAttribute('data-scenario'); renderForecast();
+}));
+document.querySelectorAll('.hire-toggle button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.hire-toggle button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+  fcHire=b.getAttribute('data-hire'); renderForecast();
+}));
+document.querySelectorAll('.capital-toggle button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.capital-toggle button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+  fcCapital=b.getAttribute('data-capital'); renderForecast();
+}));
+document.querySelectorAll('.cost-toggle button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.cost-toggle button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+  fcCost=b.getAttribute('data-cost'); renderForecast();
+}));
+
+// LOC / financing table
+const locBody = document.querySelector('#locTable tbody');
+[
+  ['Line of credit limit','$150,000','Opened this month','Revolving; drawn only as needed'],
+  ['Bridge draw','$150,000','Week ending '+dShort(FC.weeks[9])+', '+(new Date(FC.weeks[9])).getUTCFullYear(),'Covers new payroll until enterprise cash lands'],
+  ['Weekly service','~$1,500/week','Starts '+dShort(FC.weeks[13]),'Interest plus principal paydown'],
+  ['Target payoff','Within 12 months','Once enterprise cash flows','Repaid from Q4 enterprise receipts']
+].forEach(([k,v,t,n])=>locBody.insertAdjacentHTML('beforeend',
+  `<tr><td>${k}</td><td class="tabular">${v}</td><td class="muted">${t}</td><td class="muted">${n}</td></tr>`));
+
+// Milestones
+const msBody = document.querySelector('#milestonesTable tbody');
+[
+  [FC.weeks[3],'Two senior hires start (account director + senior designer)'],
+  [FC.weeks[9],'Draw $150K line of credit to bridge payroll'],
+  [FC.weeks[21],'Enterprise retainer billing begins (ramp)'],
+  [FC.weeks[25],'Enterprise at full $35K/month run-rate'],
+  [FC.weeks[26],'First enterprise cash arrives (Net 30)'],
+  [FC.weeks[39],'Begin line of credit paydown']
+].forEach(([d,l])=>{ const dt=new Date(d); msBody.insertAdjacentHTML('beforeend',
+  `<tr><td class="tabular">${dt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'})}</td><td>${l}</td></tr>`); });
+
+// Assumptions
+const asBody = document.querySelector('#assumptionsTable tbody');
+[
+  ['Horizon','52 weeks (~12 months)'],
+  ['Starting cash',fmt(FC.startingCash)],
+  ['Cash floor',fmt(FC.minCash)],
+  ['Enterprise retainer','$35,000/month · 12-month term · Net 30'],
+  ['Enterprise ramp','Weeks 22–25 (25 / 50 / 75 / 100%)'],
+  ['New hires','2 senior, ~$4,600/wk fully loaded (~$19,933/mo)'],
+  ['Line of credit','$150,000 limit · ~$1,500/wk service'],
+  ['Cost discipline','$2,500/wk discretionary cuts when "Tighten" is on'],
+  ['Organic retainer growth','~$80/wk drift'],
+  ['Direct project costs','~30% of project revenue'],
+  ['Bookkeeping (Felstow)','Illustrative $1,200/mo retainer in recurring costs']
+].forEach(([k,v])=>asBody.insertAdjacentHTML('beforeend',`<tr><td class="label">${k}</td><td><b>${v}</b></td></tr>`));
+
+renderForecast();
+
+// ============================================================================
+// PATH TO POSITIVE — headline figures from the locked combination
+// ============================================================================
+(function(){
+  const locked = FC.build({win:true, hire:'now', cap:'loc', cost:'tighten'});
+  const low = Math.min(...locked.ending), lowIdx = locked.ending.indexOf(low);
+  const end = locked.ending[locked.ending.length-1];
+  const lowLbl = (new Date(FC.weeks[lowIdx])).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'});
+  document.getElementById('pathLow').textContent = fmtSigned(low);
+  document.getElementById('pathLowWk').textContent = '';
+  document.getElementById('pathEnd').textContent = fmtSigned(end);
+  document.getElementById('pathKLow').textContent = fmtSigned(low);
+  document.getElementById('pathKLowSub').textContent = 'Stays above your starting line';
+  document.getElementById('pathKEnd').textContent = fmtSigned(end);
+  const e3 = document.getElementById('pathEnd3'); if(e3) e3.textContent = fmtSigned(end);
+})();
+
+// ============================================================================
+// VIEW SWITCHER
+// ============================================================================
+function showView(view){
+  document.getElementById('view-tactical').hidden    = (view!=='tactical');
+  document.getElementById('view-forecasting').hidden = (view!=='forecasting');
+  document.getElementById('view-pathway').hidden     = (view!=='pathway');
+  if(view==='forecasting'){ chartForecast.resize(); chartForecastFlow.resize(); chartForecast.update(); chartForecastFlow.update(); }
+}
+document.querySelectorAll('.nav a[data-view]').forEach(a=>{
+  a.addEventListener('click', e=>{
+    e.preventDefault();
+    document.querySelectorAll('.nav a').forEach(x=>x.classList.remove('active'));
+    a.classList.add('active');
+    showView(a.getAttribute('data-view'));
+    window.scrollTo({top:0});
+  });
+});
+document.querySelectorAll('.nav a:not([data-view])').forEach(a=>{
+  a.addEventListener('click', ()=>{
+    document.querySelectorAll('.nav a').forEach(x=>x.classList.remove('active'));
+    document.querySelector('.nav a[data-view="tactical"]').classList.add('active');
+    showView('tactical');
+  });
+});
 </script>
 </body>
 </html>
