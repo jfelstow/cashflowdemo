@@ -117,12 +117,11 @@ table.t .pill{display:inline-block;padding:2px 9px;border-radius:4px;background:
 .sim-placeholder{color:var(--text-muted);font-style:italic}
 @media(max-width:1100px){
   .layout{grid-template-columns:1fr}
-  aside.sidebar{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;gap:4px}
-  .brand{border-bottom:0;padding:14px 18px;flex:0 0 auto}
-  .brand-sub{display:none}
+  aside.sidebar{position:static;height:auto}
+  .brand{padding:18px 20px 12px}
   .client-pill{display:none}
-  .nav{display:flex;flex-wrap:wrap;flex:1;padding:8px 12px;gap:4px;justify-content:flex-end}
-  .nav a{margin:0;padding:7px 11px}
+  .nav{display:flex;flex-direction:column;flex:none;padding:6px 12px 14px;gap:2px}
+  .nav a{margin:0}
   .sidebar-foot{display:none}
   .kpis{grid-template-columns:repeat(2,1fr)}
   .row.r-2-1{grid-template-columns:1fr}
@@ -173,7 +172,6 @@ table.t td.pos{color:var(--primary);font-weight:700}
 table.t td.negv{color:var(--neg);font-weight:700}
 table.t tr.total td{font-weight:800;background:var(--brand-soft);color:var(--brand-deep);border-top:2px solid var(--primary)}
 table.t tr.subtotal td{font-weight:700;border-top:1px solid var(--border)}
-@media(max-width:1100px){ .nav-divider{display:none} }
 @media(max-width:640px){
   .forecast-controls{flex-direction:column;align-items:stretch;gap:10px;padding:12px 14px}
   .forecast-controls .control-group{justify-content:space-between}
