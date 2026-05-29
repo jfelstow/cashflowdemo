@@ -1,0 +1,831 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Meridian Studio (Sample) &#x2014; Cash Flow Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --brand:#4F46E5; --brand-deep:#312E81; --brand-soft:#EEF0FB;
+  --brand-cream:#F5F3FF; --text:#121212; --text-2:#444444;
+  --bg-page:#F7F8FC; --bg-sidebar:var(--brand-deep);
+  --bg-sidebar-hover:#3730A3; --bg-sidebar-active:#4338CA;
+  --sidebar-muted:#A5B0DC; --text-muted:#6B6B6B;
+  --text-sub:#9CA3AF; --border:#E6E8F2; --border-soft:#F0F1F8;
+  --card:#FFFFFF; --primary:var(--brand); --primary-soft:var(--brand-soft);
+  --warn:#B45309; --warn-soft:#FEF3C7; --neg:#DC2626; --neg-soft:#FEE2E2;
+  --pill-bg:var(--brand-soft); --pill-text:#312E81;
+  --shadow:0 1px 2px rgba(20,24,50,.04), 0 1px 3px rgba(20,24,50,.05);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;font-family:'Assistant',system-ui,-apple-system,sans-serif;background:var(--bg-page);color:var(--text);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden;max-width:100%}
+a{color:inherit;text-decoration:none}
+.layout{display:grid;grid-template-columns:210px 1fr;min-height:100vh}
+aside.sidebar{background:var(--bg-sidebar);color:var(--brand-cream);display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.brand{padding:26px 22px 18px;border-bottom:1px solid rgba(245,243,255,.12)}
+.brand-mark{font-family:'Assistant',sans-serif;font-weight:800;font-size:15px;letter-spacing:.04em;line-height:1.1;color:var(--brand-cream);text-transform:uppercase;white-space:nowrap}
+.brand-leaf{font-size:13px;color:#A5B4FC;margin-right:6px;vertical-align:0}
+.brand-sub{font-size:10.5px;letter-spacing:.18em;color:var(--sidebar-muted);margin-top:10px;text-transform:uppercase;font-weight:500}
+.client-pill{margin:14px 16px 6px;padding:10px 13px;background:var(--bg-sidebar-hover);border-radius:6px;font-size:13px;font-weight:600;display:flex;justify-content:space-between;align-items:center;color:var(--brand-cream)}
+.client-pill .chev{color:var(--sidebar-muted);font-size:10px;font-weight:400}
+.nav{padding:10px 8px;flex:1}
+.nav a{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:6px;color:#CBD2EE;font-size:13.5px;font-weight:500;margin:1px 0}
+.nav a:hover{background:var(--bg-sidebar-hover);color:var(--brand-cream)}
+.nav a.active{background:var(--bg-sidebar-active);color:var(--brand-cream)}
+.nav a .ic{display:inline-block;width:16px;text-align:center;color:#A5B4FC}
+.sidebar-foot{padding:14px 22px;font-size:11px;color:var(--sidebar-muted);border-top:1px solid rgba(245,243,255,.12);line-height:1.6}
+.sidebar-foot strong{color:var(--brand-cream);font-weight:600;display:block;margin-bottom:2px;font-size:12px}
+main{padding:28px 36px 56px;min-width:0}
+.layout>*{min-width:0}
+.topbar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;gap:24px}
+.page-title{font-size:24px;font-weight:700;letter-spacing:-.01em;color:var(--text)}
+.window-info{font-size:12.5px;color:var(--text-muted);margin-top:2px}
+.window-info b{color:var(--text);font-weight:600}
+.range-pills{display:inline-flex;background:#fff;border:1px solid var(--border);border-radius:8px;padding:3px;gap:2px}
+.range-pills button{font-family:inherit;background:transparent;border:0;padding:6px 12px;font-size:12px;font-weight:500;border-radius:5px;color:var(--text-muted);cursor:pointer}
+.range-pills button.on{background:var(--primary);color:var(--brand-cream)}
+.exec{background:linear-gradient(180deg,var(--primary-soft),#fff);border:1px solid #C7CEF5;border-left:4px solid var(--primary);border-radius:8px;padding:14px 18px;margin:18px 0 0;font-size:13.5px;line-height:1.55;color:#23264A}
+.exec .label{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--primary);display:block;margin-bottom:4px}
+.exec b{color:var(--text);font-weight:700}
+.exec .pill{display:inline-block;padding:1px 8px;border-radius:4px;font-size:11.5px;font-weight:700;margin-right:5px}
+.exec .pill.g{background:var(--primary-soft);color:var(--primary)}
+.exec .pill.y{background:var(--warn-soft);color:#5A4310}
+.exec .pill.r{background:var(--neg-soft);color:var(--neg)}
+.banner{background:var(--warn-soft);border:1px solid #F4D78A;color:#5A4310;padding:14px 18px;border-radius:8px;margin:12px 0;font-size:13px;display:flex;gap:14px;align-items:flex-start}
+.banner .dot{width:8px;height:8px;border-radius:50%;background:var(--warn);margin-top:6px;flex-shrink:0}
+.banner b{display:block;color:#5A4310;margin-bottom:4px;font-weight:700}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:14px 0}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px 18px 16px;box-shadow:var(--shadow)}
+.kpi-label{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--text-muted);text-transform:uppercase}
+.kpi-value{font-size:24px;font-weight:700;margin-top:8px;letter-spacing:-.01em;color:var(--text)}
+.kpi-sub{font-size:12px;color:var(--text-muted);margin-top:4px}
+.pos{color:var(--primary)} .neg{color:var(--neg)} .warn{color:var(--warn)}
+.row{display:grid;gap:14px} .row.r-2-1{grid-template-columns:2fr 1fr}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);overflow:hidden}
+.card-head{display:flex;justify-content:space-between;align-items:center;padding:16px 20px 4px}
+.card-title{font-size:14.5px;font-weight:700}
+.card-sub{font-size:12px;color:var(--text-muted)}
+.card-body{padding:8px 16px 16px}
+.toggle{display:inline-flex;background:#F1F2F8;border-radius:6px;padding:3px;gap:2px}
+.toggle button{font-family:inherit;background:transparent;border:0;padding:5px 12px;font-size:12px;font-weight:500;border-radius:4px;color:var(--text-muted);cursor:pointer}
+.toggle button.on{background:#fff;color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--text-muted);margin-top:6px}
+.legend .sw{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.donut-legend{margin-top:14px}
+.donut-legend .row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:13px;border-top:1px solid var(--border-soft)}
+.donut-legend .row:first-child{border-top:0}
+.donut-legend .lab{display:flex;align-items:center;gap:8px;color:var(--text-muted)}
+.donut-legend .val{font-weight:700;color:var(--text)}
+table.t{width:100%;border-collapse:collapse;font-size:13px}
+table.t th{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);text-align:left;padding:10px 12px;border-bottom:1px solid var(--border)}
+table.t td{padding:11px 12px;border-bottom:1px solid var(--border-soft);color:var(--text)}
+table.t tr:last-child td{border-bottom:0}
+table.t td.num,table.t th.num{text-align:right;font-variant-numeric:tabular-nums}
+table.t td.label{color:var(--text-muted)}
+table.t .pill{display:inline-block;padding:2px 9px;border-radius:4px;background:var(--pill-bg);color:var(--pill-text);font-size:11.5px;font-weight:600}
+.cash-row td{font-weight:700} .cash-row td.neg{color:var(--neg)}
+.section-row td{background:var(--brand-soft);color:var(--brand-deep);font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:8px 12px;border-bottom:1px solid var(--border)}
+.section-title{font-size:15px;font-weight:700;margin:22px 0 10px;display:flex;justify-content:space-between;align-items:baseline;color:var(--text)}
+.section-title .ann{font-size:12px;font-weight:400;color:var(--text-muted)}
+.chart-wrap{position:relative;height:280px}
+.chart-wrap.tall{height:320px}
+.chart-wrap.donut{height:200px}
+.muted{color:var(--text-muted)}
+.tabular{font-variant-numeric:tabular-nums}
+.flag-cell{display:inline-flex;align-items:center;gap:6px}
+.flag-cell .warn-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--neg)}
+.foot{margin-top:36px;padding-top:18px;border-top:1px solid var(--border);font-size:11.5px;color:var(--text-sub);display:flex;justify-content:space-between}
+.sample-ribbon{background:var(--brand-deep);color:var(--brand-cream);text-align:center;font-size:12px;font-weight:600;letter-spacing:.06em;padding:7px 14px}
+.sample-ribbon span{opacity:.85;font-weight:400}
+.sim-controls{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;margin-bottom:6px}
+.sim-field{display:flex;flex-direction:column;gap:4px}
+.sim-field label{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted)}
+.sim-field input,.sim-field select{font-family:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:#fff;color:var(--text);min-width:130px}
+.sim-field input:focus,.sim-field select:focus{outline:none;border-color:var(--primary)}
+.sim-result{margin:12px 0 14px;padding:14px 16px;border-radius:8px;background:var(--brand-soft);font-size:13.5px;line-height:1.5}
+.sim-result .verdict{display:inline-block;padding:3px 11px;border-radius:5px;font-weight:800;font-size:12px;letter-spacing:.04em;margin-bottom:8px}
+.sim-result .verdict.g{background:var(--primary);color:var(--brand-cream)}
+.sim-result .verdict.y{background:var(--warn);color:#fff}
+.sim-result .verdict.r{background:var(--neg);color:#fff}
+.sim-result .verdict.defer{background:#1F2440;color:var(--brand-cream)}
+.sim-result .sim-line{margin:3px 0}
+.sim-result b{color:var(--text)}
+.sim-placeholder{color:var(--text-muted);font-style:italic}
+@media(max-width:1100px){
+  .layout{grid-template-columns:1fr}
+  aside.sidebar{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;gap:4px}
+  .brand{border-bottom:0;padding:14px 18px;flex:0 0 auto}
+  .brand-sub{display:none}
+  .client-pill{display:none}
+  .nav{display:flex;flex-wrap:wrap;flex:1;padding:8px 12px;gap:4px;justify-content:flex-end}
+  .nav a{margin:0;padding:7px 11px}
+  .sidebar-foot{display:none}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .row.r-2-1{grid-template-columns:1fr}
+}
+@media(max-width:640px){
+  main{padding:16px 13px 44px}
+  .topbar{flex-direction:column;align-items:flex-start;gap:10px}
+  .page-title{font-size:19px}
+  .window-info{font-size:11.5px}
+  .range-pills{width:100%;justify-content:space-between}
+  .range-pills button{flex:1;text-align:center}
+  .kpis{grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+  .kpi{padding:13px 13px 12px}
+  .kpi-value{font-size:19px;margin-top:5px}
+  .kpi-label{font-size:10px;letter-spacing:.06em}
+  .kpi-sub{font-size:11px}
+  .exec{padding:12px 14px;font-size:12.5px}
+  .banner{padding:12px 14px;font-size:12px}
+  .card-head{padding:14px 14px 2px;flex-wrap:wrap;gap:8px}
+  .card-body{padding:8px 12px 14px}
+  .chart-wrap,.chart-wrap.tall{height:240px}
+  .chart-wrap.donut{height:190px}
+  .section-title{font-size:14px;flex-wrap:wrap;gap:2px}
+  .card{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table.t{min-width:540px}
+  .legend{font-size:11px;gap:10px}
+}
+@media(max-width:400px){ .kpis{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark"><span class="brand-leaf">&#x25C8;</span>Meridian Studio</div>
+      <div class="brand-sub">Cash Flow Dashboard</div>
+    </div>
+    <div class="client-pill"><span>13-Week Forecast</span><span class="chev">&#x25BE;</span></div>
+    <nav class="nav">
+      <a class="active" href="#top"><span class="ic">&#x25A3;</span> Dashboard</a>
+      <a href="#cf"><span class="ic">&#x25A4;</span> Cash Flow</a>
+      <a href="#outflows"><span class="ic">&#x2198;</span> Disbursements</a>
+      <a href="#simulator"><span class="ic">&#x2295;</span> Spend Simulator</a>
+      <a href="#debt"><span class="ic">&#x229F;</span> Debt Schedule</a>
+    </nav>
+    <div class="sidebar-foot">
+      <strong>Prepared by</strong>Felstow Bookkeeping &amp; Consulting
+      <div style="margin-top:10px"><strong>Sample</strong>Illustrative data only</div>
+    </div>
+  </aside>
+  <main id="top">
+    <div class="topbar">
+      <div>
+        <div class="page-title">13-Week Cash Flow</div>
+        <div class="window-info">Window: <b id="winStart"></b> through <b id="winEnd"></b> &nbsp;&middot;&nbsp; <span class="muted">All figures in USD</span></div>
+      </div>
+      <div class="range-pills" id="horizonPills">
+        <button data-horizon="4">4W</button>
+        <button data-horizon="8">8W</button>
+        <button class="on" data-horizon="13">13W</button>
+      </div>
+    </div>
+
+    <div class="exec" id="exec">
+      <span class="label">This Week&#x2019;s Cash Story</span>
+      <div id="execText"></div>
+    </div>
+
+    <div class="banner">
+      <span class="dot"></span>
+      <div>
+        <b>Sample dashboard &mdash; illustrative data, not a real client</b>
+        "Meridian Studio" is a fictional B2B marketing agency. Every number below is fabricated to demonstrate the format, the weekly cash-flow logic, and the spend simulator. A live version would read directly from your QuickBooks file each week.
+      </div>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi"><div class="kpi-label">&#x25C7; Starting Cash</div><div class="kpi-value" id="kStart"></div><div class="kpi-sub">Operating checking &mdash; bank balance</div></div>
+      <div class="kpi"><div class="kpi-label">&#x231A; Cash Runway</div><div class="kpi-value" id="kRunway"></div><div class="kpi-sub" id="kRunwaySub"></div></div>
+      <div class="kpi"><div class="kpi-label">&#x25EB; Spendable Headroom</div><div class="kpi-value" id="kHead"></div><div class="kpi-sub" id="kHeadSub"></div></div>
+      <div class="kpi"><div class="kpi-label">&#x1F525; Weekly Burn Rate</div><div class="kpi-value" id="kBurn"></div><div class="kpi-sub" id="kBurnSub"></div></div>
+    </div>
+    <div class="kpis">
+      <div class="kpi"><div class="kpi-label">&#x21A7; Lowest Projected</div><div class="kpi-value" id="kLow"></div><div class="kpi-sub" id="kLowSub"></div></div>
+      <div class="kpi"><div class="kpi-label" id="kNetLabel">&#x03A3; 13-Wk Net Cash Flow</div><div class="kpi-value" id="kNet"></div><div class="kpi-sub" id="kNetSub"></div></div>
+      <div class="kpi"><div class="kpi-label">&#x2301; Weeks Below Floor</div><div class="kpi-value" id="kBelow"></div><div class="kpi-sub" id="kBelowSub"></div></div>
+      <div class="kpi"><div class="kpi-label" id="kOutLabel">&#x2193; Total 13-Wk Outflows</div><div class="kpi-value" id="kOut"></div><div class="kpi-sub" id="kOutSub"></div></div>
+    </div>
+
+    <div class="row r-2-1">
+      <div class="card">
+        <div class="card-head">
+          <div><div class="card-title">Cash Trajectory</div><div class="card-sub" id="trajectorySub"></div></div>
+          <div class="toggle" id="trajectoryToggle">
+            <button class="on" data-trajectory="ending">Ending</button>
+            <button data-trajectory="net">Net &#x0394;</button>
+          </div>
+        </div>
+        <div class="card-body"><div class="chart-wrap tall"><canvas id="chartTrajectory"></canvas></div></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div><div class="card-title">Revenue Mix</div><div class="card-sub">13-week total, by source</div></div></div>
+        <div class="card-body">
+          <div class="chart-wrap donut"><canvas id="chartMix"></canvas></div>
+          <div class="donut-legend" id="mixLegend"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title" id="simulator">Spend Simulator <span class="ann">test a purchase or new hire against your 13-week cash position</span></div>
+    <div class="card">
+      <div class="card-body">
+        <div class="sim-controls">
+          <div class="sim-field">
+            <label>Amount ($)</label>
+            <input type="number" id="simAmount" placeholder="e.g. 90000" min="0" step="1000" />
+          </div>
+          <div class="sim-field">
+            <label>When</label>
+            <select id="simWeek"></select>
+          </div>
+          <div class="sim-field">
+            <label>Necessity</label>
+            <select id="simNecessity">
+              <option value="critical">Critical</option>
+              <option value="important" selected>Important</option>
+              <option value="nice">Nice-to-have</option>
+            </select>
+          </div>
+          <div class="sim-field">
+            <label>Type</label>
+            <select id="simType">
+              <option value="onetime" selected>One-time</option>
+              <option value="recurring">Recurring (weekly)</option>
+            </select>
+          </div>
+          <div class="sim-field" id="simWeeksField" style="display:none">
+            <label># weeks</label>
+            <input type="number" id="simWeeks" value="13" min="1" max="13" />
+          </div>
+        </div>
+        <div class="sim-result" id="simResult"><span class="sim-placeholder">Enter a dollar amount to see how the purchase would affect your cash position. Try a $90,000 office buildout, or a recurring $2,400/wk for a new senior hire.</span></div>
+        <div class="chart-wrap" style="height:230px"><canvas id="chartSim"></canvas></div>
+      </div>
+    </div>
+
+    <div class="section-title" id="cf">Weekly Inflows vs Disbursements <span class="ann">stacked by category</span></div>
+    <div class="card">
+      <div class="card-body">
+        <div class="chart-wrap"><canvas id="chartFlow"></canvas></div>
+        <div class="legend">
+          <span><span class="sw" style="background:#4F46E5"></span>Retainer Revenue</span>
+          <span><span class="sw" style="background:#818CF8"></span>Project Revenue</span>
+          <span><span class="sw" style="background:#312E81"></span>Other / Financing</span>
+          <span><span class="sw" style="background:#D97706"></span>Direct Project Costs</span>
+          <span><span class="sw" style="background:#F59E0B"></span>Operating Expenses</span>
+          <span><span class="sw" style="background:#DC2626"></span>Debt Service</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title" id="outflows">Top 5 Expense Categories <span class="ann">13-week totals, ranked by spend</span></div>
+    <div class="card">
+      <div class="card-body"><div class="chart-wrap"><canvas id="chartTop5"></canvas></div></div>
+    </div>
+
+    <div class="section-title" id="debt">Debt Schedule</div>
+    <div class="card">
+      <table class="t" id="debtTable">
+        <thead><tr>
+          <th>Loan / Obligation</th><th>Type</th>
+          <th class="num">Outstanding Balance</th><th class="num">13-Wk Service</th>
+          <th class="num">Implied Monthly</th><th class="num">Status</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="section-title">Weekly Cash Flow Detail</div>
+    <div class="card" style="overflow-x:auto">
+      <table class="t" id="weekTable">
+        <thead><tr id="weekHead"></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="foot">
+      <span>Meridian Studio (Sample) &middot; 13-Week Cash Flow Dashboard &middot; Felstow Bookkeeping &amp; Consulting</span>
+      <span>Generated <span id="genTs"></span></span>
+    </div>
+  </main>
+</div>
+
+<script>
+// ============================================================================
+// SAMPLE DATA GENERATOR — fabricates a realistic 13-week cash flow for a
+// fictional B2B marketing agency ("Meridian Studio"). All numbers are made up.
+// Tells the classic agency story: steady retainer base + fixed payroll, but
+// lumpy project revenue creating a mid-quarter dip.
+// ============================================================================
+const DATA = (function(){
+  const N = 13;
+  const weekDates = ['2026-05-29','2026-06-05','2026-06-12','2026-06-19','2026-06-26',
+                     '2026-07-03','2026-07-10','2026-07-17','2026-07-24','2026-07-31',
+                     '2026-08-07','2026-08-14','2026-08-21'];
+  const sum = a => a.reduce((x,y)=>x+(y||0),0);
+  const addN = (...arrs) => Array.from({length:N},(_,i)=>arrs.reduce((s,a)=>s+(a[i]||0),0));
+
+  // --- INFLOWS ---
+  const retainer = [40000,40000,41000,41000,41000,42000,42000,42000,43000,43000,43000,44000,44000];
+  const project  = [29000,25000,31000,4000,3000,2000,3000,5000,23000,27000,21000,18000,25000];
+  const workshop = [0,0,12000,0,0,0,9000,0,0,0,14000,0,0];
+  const owner_contrib = Array(N).fill(0);
+  const loan_draws    = Array(N).fill(0);
+  const other_recv    = [1500,0,800,0,1200,0,0,900,0,1100,0,0,1400];
+  const total_inflows = addN(retainer,project,workshop,owner_contrib,loan_draws,other_recv);
+
+  // --- DIRECT PROJECT COSTS (COGS-equivalent) ---
+  const cogs_lines = [
+    {name:'Contractor / Freelance', weekly:[14000,11000,15000,8000,8000,7000,8000,9000,12000,14000,10000,9000,13000]},
+    {name:'Media Buys (client pass-through)', weekly:[9000,7000,11000,3000,2000,2000,3000,6000,9000,10000,7000,6000,9000]},
+    {name:'Print / Production', weekly:[4000,2000,5000,1000,0,1000,0,2000,4000,5000,3000,2000,4000]},
+  ];
+  const cogs_total = addN(...cogs_lines.map(l=>l.weekly));
+
+  // --- OPERATING EXPENSES ---
+  const opex_lines = [
+    {name:'Payroll & Benefits', weekly:[34000,34000,34000,34000,35000,35000,35000,35000,36000,36000,36000,36000,36000]},
+    {name:'Office Rent (North Loop)', weekly:[9500,0,0,0,9500,0,0,0,9500,0,0,0,9500]},
+    {name:'Software / SaaS', weekly:[0,3200,0,0,0,3200,0,0,0,3200,0,0,0]},
+    {name:'Agency Marketing', weekly:Array(N).fill(1200)},
+    {name:'Travel & Meals', weekly:[800,1500,600,2200,400,900,1800,600,700,1200,500,900,1100]},
+    {name:'Insurance', weekly:[0,0,2400,0,0,0,2400,0,0,0,2400,0,0]},
+    {name:'Professional Fees', weekly:[1500,0,0,0,1500,0,0,0,1500,0,0,0,1500]},
+    {name:'Office & Admin', weekly:Array(N).fill(600)},
+  ];
+  const opex_total = addN(...opex_lines.map(l=>l.weekly));
+
+  // --- DEBT SERVICE ---
+  const debt_lines = [
+    {name:'Line of Credit', balance:120000, weekly:[0,0,650,0,0,0,650,0,0,0,650,0,0]},
+    {name:'SBA Term Loan', balance:182000, weekly:[0,2150,0,0,0,2150,0,0,0,2150,0,0,0]},
+    {name:'Business Credit Card', balance:14500, weekly:[0,0,3500,0,0,0,3000,0,0,0,3200,0,0]},
+  ];
+  const debt_total = addN(...debt_lines.map(l=>l.weekly));
+
+  const total_outflows = addN(cogs_total,opex_total,debt_total);
+  const net_cash_flow  = Array.from({length:N},(_,i)=>total_inflows[i]-total_outflows[i]);
+
+  const starting_cash = 140000;
+  const min_cash = 85000;
+  const beginning_cash=[], ending_cash=[], cushion=[];
+  let bal = starting_cash;
+  for(let i=0;i<N;i++){
+    beginning_cash.push(bal);
+    bal = bal + net_cash_flow[i];
+    ending_cash.push(bal);
+    cushion.push(bal - min_cash);
+  }
+
+  const expense_lines = [...cogs_lines, ...opex_lines, ...debt_lines];
+
+  return {
+    window_start:weekDates[0], window_end:weekDates[N-1], week_dates:weekDates,
+    starting_cash, min_cash,
+    retainer, project, workshop, owner_contrib, loan_draws, other_recv,
+    total_inflows, total_outflows, net_cash_flow,
+    beginning_cash, ending_cash, cushion,
+    cogs_lines, cogs_total, opex_lines, opex_total, debt_lines, debt_total,
+    expense_lines
+  };
+})();
+
+const fmt = n => (n==null||isNaN(n))?'—':('$'+Math.round(n).toLocaleString('en-US'));
+const fmtSigned = n => (n==null||isNaN(n))?'—':((n<0?'-$':'$')+Math.abs(Math.round(n)).toLocaleString('en-US'));
+const dShort = s => { const d=new Date(s); return d.toLocaleDateString('en-US',{month:'short',day:'numeric',timeZone:'UTC'}); };
+
+const now = new Date(); const ts = now.toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
+document.getElementById('genTs').textContent = ts;
+
+let H = 13;
+let trajectoryView = 'ending';
+const FULL_LABELS = DATA.week_dates.map((d,i)=>'W'+(i+1)+' · '+dShort(d));
+const slice = arr => arr.slice(0, H);
+let chartTrajectory, chartMix, chartFlow, chartTop5;
+
+function buildChartTrajectory() {
+  chartTrajectory = new Chart(document.getElementById('chartTrajectory'), {
+    type: 'line',
+    data: { labels: [], datasets: [
+      { label: 'Ending Cash', data: [], borderColor: '#4F46E5', backgroundColor: 'rgba(79,70,229,.10)',
+        fill: true, tension: .25, borderWidth: 2.5, pointRadius: 3.5, pointBackgroundColor: '#4F46E5' },
+      { label: 'Min Threshold', data: [], borderColor: '#DC2626', borderDash: [6,4], borderWidth: 1.5, pointRadius: 0, fill: false },
+      { label: 'Zero', data: [], borderColor: '#9CA3AF', borderDash: [2,4], borderWidth: 1, pointRadius: 0, fill: false }
+    ]},
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.dataset.label + ': ' + fmtSigned(c.parsed.y) } } },
+      scales: { y: { ticks: { callback: v => '$'+(v/1000).toFixed(0)+'k', color: '#6B6B6B', font: {family:'Assistant', size:11}}, grid: {color:'#F0F1F8'} },
+                x: { ticks: { color: '#6B6B6B', font: {family:'Assistant', size:11}}, grid: {display:false} } } }
+  });
+}
+function buildChartMix() {
+  chartMix = new Chart(document.getElementById('chartMix'), {
+    type: 'doughnut',
+    data: { labels: [], datasets: [{ data: [], backgroundColor: [], borderWidth: 2, borderColor: '#fff' }] },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '65%',
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.label + ': ' + fmt(c.parsed) } } } }
+  });
+}
+function buildChartFlow() {
+  chartFlow = new Chart(document.getElementById('chartFlow'), {
+    type: 'bar',
+    data: { labels: [], datasets: [] },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.dataset.label + ': ' + fmtSigned(Math.abs(c.parsed.y)) } } },
+      scales: { x: { stacked: true, ticks: {color:'#6B6B6B', font:{family:'Assistant', size:10.5}}, grid: {display:false} },
+                y: { stacked: true, ticks: {callback: v => '$'+(v/1000).toFixed(0)+'k', color:'#6B6B6B', font:{family:'Assistant', size:11}}, grid: {color:'#F0F1F8'} } } }
+  });
+}
+function buildChartTop5() {
+  chartTop5 = new Chart(document.getElementById('chartTop5'), {
+    type: 'bar',
+    data: { labels: [], datasets: [{ label: '', data: [], backgroundColor: ['#4F46E5','#6366F1','#818CF8','#D97706','#F59E0B'], borderRadius: 4 }] },
+    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false },
+                 tooltip: { callbacks: { label: c => fmt(c.parsed.x) + ' (' + fmt(c.parsed.x / H * 4.33) + '/mo avg)' } } },
+      scales: { x: { ticks: { callback: v => '$'+(v/1000).toFixed(1)+'k', color:'#6B6B6B', font:{family:'Assistant', size:11}}, grid: {color:'#F0F1F8'} },
+                y: { ticks: {color:'#444444', font:{family:'Assistant', size:12, weight:'500'}}, grid: {display:false} } } }
+  });
+}
+
+buildChartTrajectory(); buildChartMix(); buildChartFlow(); buildChartTop5();
+
+function renderTactical() {
+  const labels    = FULL_LABELS.slice(0, H);
+  const ending    = slice(DATA.ending_cash);
+  const inflows   = slice(DATA.total_inflows);
+  const outflows  = slice(DATA.total_outflows);
+  const netFlow   = slice(DATA.net_cash_flow);
+
+  const inflowSum  = sumArr(inflows);
+  const outflowSum = sumArr(outflows);
+  const netTotal   = sumArr(netFlow);
+  const minEnd     = Math.min(...ending);
+  const minIdx     = ending.indexOf(minEnd);
+  const belowCount = ending.filter(v => v < DATA.min_cash).length;
+  const breachIdx  = ending.findIndex(v => v < DATA.min_cash);
+  const burnWeekly = outflowSum / H;
+  const headroom   = minEnd - DATA.min_cash;
+
+  document.querySelector('.page-title').textContent = H + '-Week Cash Flow';
+  document.getElementById('winStart').textContent = dShort(DATA.week_dates[0]) + ', ' + (new Date(DATA.week_dates[0])).getUTCFullYear();
+  document.getElementById('winEnd').textContent   = dShort(DATA.week_dates[H-1]) + ', ' + (new Date(DATA.week_dates[H-1])).getUTCFullYear();
+
+  document.getElementById('kStart').textContent = fmt(DATA.starting_cash);
+
+  const kRunway = document.getElementById('kRunway'); kRunway.className = 'kpi-value';
+  if (breachIdx === -1) {
+    kRunway.textContent = H + '+ weeks'; kRunway.classList.add('pos');
+    document.getElementById('kRunwaySub').textContent = 'No threshold breach in window';
+  } else {
+    kRunway.textContent = breachIdx + ' weeks'; kRunway.classList.add(breachIdx <= 4 ? 'neg' : 'warn');
+    document.getElementById('kRunwaySub').textContent = 'Until ' + fmt(DATA.min_cash) + ' breach in W' + (breachIdx + 1);
+  }
+
+  const kHead = document.getElementById('kHead'); kHead.className = 'kpi-value';
+  kHead.textContent = fmtSigned(headroom);
+  kHead.classList.add(headroom < 0 ? 'neg' : headroom < 20000 ? 'warn' : 'pos');
+  document.getElementById('kHeadSub').textContent = headroom >= 0
+    ? 'Max safe spend today before W' + (minIdx + 1) + ' trough'
+    : 'Already projected below threshold';
+
+  document.getElementById('kBurn').textContent = fmt(burnWeekly) + '/wk';
+  document.getElementById('kBurnSub').textContent = fmt(burnWeekly * 4.33) + '/month avg';
+
+  const kLow = document.getElementById('kLow'); kLow.className = 'kpi-value';
+  kLow.textContent = fmtSigned(minEnd);
+  kLow.classList.add(minEnd < 0 ? 'neg' : minEnd < DATA.min_cash ? 'warn' : 'pos');
+  document.getElementById('kLowSub').textContent = 'Week of ' + dShort(DATA.week_dates[minIdx]) + ' (W' + (minIdx + 1) + ')';
+
+  const kNet = document.getElementById('kNet'); kNet.className = 'kpi-value';
+  kNet.textContent = fmtSigned(netTotal); kNet.classList.add(netTotal < 0 ? 'neg' : 'pos');
+  document.getElementById('kNetLabel').innerHTML = 'Σ ' + H + '-Wk Net Cash Flow';
+  document.getElementById('kNetSub').innerHTML = fmt(inflowSum) + ' in &middot; ' + fmt(outflowSum) + ' out';
+
+  const kBelow = document.getElementById('kBelow'); kBelow.className = 'kpi-value';
+  kBelow.textContent = belowCount + ' / ' + H;
+  kBelow.classList.add(belowCount > 0 ? 'neg' : 'pos');
+  document.getElementById('kBelowSub').textContent = 'Threshold: ' + fmt(DATA.min_cash);
+
+  document.getElementById('kOut').textContent = fmt(outflowSum);
+  document.getElementById('kOutLabel').innerHTML = '↓ Total ' + H + '-Wk Outflows';
+  document.getElementById('kOutSub').innerHTML = fmt(sumArr(slice(DATA.cogs_total))) + ' direct + ' + fmt(sumArr(slice(DATA.opex_total))) + ' OpEx';
+
+  const trend = ending[H-1] - ending[0];
+  const trendWord = Math.abs(trend) < 4000 ? 'roughly flat' : (trend > 0 ? 'building cash' : 'drawing down');
+  const slicedExpenses = DATA.expense_lines.map(l => ({
+    name: l.name,
+    total: l.weekly.slice(0, H).reduce((a,b)=>a+(b||0), 0)
+  })).sort((a,b) => b.total - a.total);
+  const top = slicedExpenses[0];
+  const topMonthly = (top.total / H) * 4.33;
+  let status, statusText, reco;
+  if (breachIdx === -1 && headroom > 40000) {
+    status = 'g'; statusText = 'ON TRACK';
+    reco = 'No threshold breach in the ' + H + '-week window, with healthy headroom. The lumpiness comes from project revenue against fixed payroll &mdash; the low point lands W' + (minIdx+1) + '.';
+  } else if (breachIdx === -1) {
+    status = 'y'; statusText = 'CAUTION';
+    reco = 'No breach, but the summer trough is tight &mdash; project revenue slows while payroll stays fixed, pulling cash to its low W' + (minIdx+1) + ' (' + dShort(DATA.week_dates[minIdx]) + '). Time large discretionary spend after that, or pull project receivables forward.';
+  } else {
+    status = 'r'; statusText = 'URGENT';
+    reco = 'Threshold breach in W' + (breachIdx + 1) + '. Defer non-critical spend, accelerate receivables, or draw on the line of credit.';
+  }
+  document.getElementById('execText').innerHTML =
+    `<span class="pill ${status}">${statusText}</span> Cash is <b>${trendWord}</b> across the ${H}-week window (Net <b>${fmtSigned(netTotal)}</b>). Lowest projected: <b>${fmtSigned(minEnd)}</b> in W${minIdx+1} (${dShort(DATA.week_dates[minIdx])}). Biggest cash drag: <b>${top.name}</b> at <b>${fmt(topMonthly)}/month</b>. <b>Read:</b> ${reco}`;
+
+  chartTrajectory.data.labels = labels;
+  if (trajectoryView === 'ending') {
+    chartTrajectory.data.datasets[0].label = 'Ending Cash';
+    chartTrajectory.data.datasets[0].data = ending;
+    chartTrajectory.data.datasets[1].data = Array(H).fill(DATA.min_cash);
+    chartTrajectory.data.datasets[1].hidden = false;
+    chartTrajectory.data.datasets[2].data = Array(H).fill(0);
+    document.getElementById('trajectorySub').textContent = 'Ending balance by week, with ' + fmt(DATA.min_cash) + ' minimum threshold';
+  } else {
+    chartTrajectory.data.datasets[0].label = 'Net Cash Flow';
+    chartTrajectory.data.datasets[0].data = netFlow;
+    chartTrajectory.data.datasets[1].hidden = true;
+    chartTrajectory.data.datasets[2].data = Array(H).fill(0);
+    document.getElementById('trajectorySub').textContent = 'Weekly net change (inflows − outflows). Positive = cash in, negative = cash out.';
+  }
+  chartTrajectory.update();
+
+  const slicedMix = [
+    {label:'Retainer Revenue',  val: sumArr(slice(DATA.retainer)),     color:'#4F46E5'},
+    {label:'Project Revenue',   val: sumArr(slice(DATA.project)),      color:'#818CF8'},
+    {label:'Workshop / Training',val: sumArr(slice(DATA.workshop)),    color:'#14B8A6'},
+    {label:'Owner Contribution',val: sumArr(slice(DATA.owner_contrib)),color:'#F59E0B'},
+    {label:'Line of Credit Draw',val: sumArr(slice(DATA.loan_draws)),  color:'#312E81'},
+    {label:'Other Receipts',    val: sumArr(slice(DATA.other_recv)),   color:'#94A3B8'}
+  ].filter(m => m.val > 0);
+  const mixTotal = slicedMix.reduce((a,b)=>a+b.val, 0) || 1;
+  chartMix.data.labels = slicedMix.map(m => m.label);
+  chartMix.data.datasets[0].data = slicedMix.map(m => m.val);
+  chartMix.data.datasets[0].backgroundColor = slicedMix.map(m => m.color);
+  chartMix.update();
+  document.getElementById('mixLegend').innerHTML = slicedMix.map(m =>
+    `<div class="row"><span class="lab"><span class="sw" style="background:${m.color}"></span>${m.label}</span><span class="val">${(m.val / mixTotal * 100).toFixed(0)}%</span></div>`
+  ).join('');
+
+  chartFlow.data.labels = labels;
+  chartFlow.data.datasets = [
+    {label:'Retainer Revenue', data: slice(DATA.retainer), backgroundColor:'#4F46E5', stack:'in'},
+    {label:'Project Revenue',  data: slice(DATA.project),  backgroundColor:'#818CF8', stack:'in'},
+    {label:'Other / Financing', data: slice(DATA.loan_draws).map((v,i) =>
+      v + (DATA.owner_contrib[i]||0) + (DATA.other_recv[i]||0) + (DATA.workshop[i]||0)),
+      backgroundColor:'#312E81', stack:'in'},
+    {label:'Direct Project Costs', data: slice(DATA.cogs_total).map(v => -v), backgroundColor:'#D97706', stack:'out'},
+    {label:'Operating Expenses', data: slice(DATA.opex_total).map(v => -v), backgroundColor:'#F59E0B', stack:'out'},
+    {label:'Debt Service', data: slice(DATA.debt_total).map(v => -v), backgroundColor:'#DC2626', stack:'out'}
+  ];
+  chartFlow.update();
+
+  const top5 = slicedExpenses.slice(0, 5);
+  chartTop5.data.labels = top5.map(c => c.name);
+  chartTop5.data.datasets[0].data = top5.map(c => c.total);
+  chartTop5.data.datasets[0].label = H + '-Week Total';
+  chartTop5.update();
+
+  document.querySelector('#debtTable thead th:nth-child(4)').textContent = H + '-Wk Service';
+  const debtBody = document.querySelector('#debtTable tbody');
+  debtBody.innerHTML = '';
+  DATA.debt_lines.forEach(d => {
+    const slicedTotal = d.weekly.slice(0, H).reduce((a,b)=>a+(b||0), 0);
+    const monthly = slicedTotal / H * 4.33;
+    const issue = debtIssue[d.name] || { cls: '', msg: 'Current' };
+    const flag = issue.cls === 'warn'
+      ? `<span class="flag-cell"><span class="warn-dot"></span>${issue.msg}</span>`
+      : `<span class="muted">${issue.msg}</span>`;
+    debtBody.insertAdjacentHTML('beforeend',
+      `<tr><td>${d.name}</td><td><span class="pill">${debtTypes[d.name] || '—'}</span></td>
+         <td class="num tabular">${fmt(d.balance)}</td>
+         <td class="num tabular">${fmt(slicedTotal)}</td>
+         <td class="num tabular">${fmt(monthly)}</td>
+         <td class="num">${flag}</td></tr>`);
+  });
+
+  renderWeeklyDetail(H);
+}
+
+function sumArr(a){ return a.reduce((x,y)=>x+(y||0),0); }
+
+function renderWeeklyDetail(H) {
+  const head  = document.getElementById('weekHead');
+  const tbody = document.querySelector('#weekTable tbody');
+  const labels = FULL_LABELS.slice(0, H);
+  head.innerHTML  = '';
+  tbody.innerHTML = '';
+
+  head.insertAdjacentHTML('beforeend',
+    '<th>Line</th>' + labels.map(l => `<th class="num">${l}</th>`).join('') + '<th class="num">Total</th>');
+
+  const sliceArr = a => a.slice(0, H);
+  const sum = a => a.reduce((x,y) => x + (y||0), 0);
+  function trow(label, arr, opts = {}) {
+    const a = sliceArr(arr);
+    const cls = opts.cls || ''; const isCash = opts.cash || false;
+    const cells = a.map(v => {
+      const c = isCash && v < 0 ? 'num tabular neg' : 'num tabular';
+      return `<td class="${c}">${v === 0 ? '—' : fmtSigned(v)}</td>`;
+    }).join('');
+    tbody.insertAdjacentHTML('beforeend',
+      `<tr class="${cls}"><td class="${opts.label ? '' : 'label'}">${label}</td>${cells}<td class="num tabular"><b>${fmtSigned(sum(a))}</b></td></tr>`);
+  }
+  function sectionHeader(label) {
+    tbody.insertAdjacentHTML('beforeend',
+      `<tr class="section-row"><td colspan="${H + 2}">${label}</td></tr>`);
+  }
+
+  sectionHeader('BEGINNING CASH');
+  trow('Beginning Cash', DATA.beginning_cash, {cls:'cash-row', label:1, cash:1});
+
+  sectionHeader('CASH INFLOWS');
+  trow('Retainer Revenue',     DATA.retainer);
+  trow('Project Revenue',      DATA.project);
+  trow('Workshop / Training',  DATA.workshop);
+  trow('Other Receipts',       DATA.other_recv);
+  trow('Total Inflows',        DATA.total_inflows, {cls:'cash-row', label:1});
+
+  sectionHeader('DIRECT PROJECT COSTS');
+  DATA.cogs_lines.forEach(line => trow(line.name, line.weekly.map(v => -v)));
+  trow('Subtotal Direct',      DATA.cogs_total.map(v => -v), {cls:'cash-row', label:1});
+
+  sectionHeader('OPERATING EXPENSE DISBURSEMENTS');
+  DATA.opex_lines.forEach(line => trow(line.name, line.weekly.map(v => -v)));
+  trow('Subtotal OpEx',        DATA.opex_total.map(v => -v), {cls:'cash-row', label:1});
+
+  sectionHeader('FINANCING & DEBT SERVICE');
+  DATA.debt_lines.forEach(d => trow(d.name, d.weekly.map(v => -v)));
+  trow('Subtotal Debt Service', DATA.debt_total.map(v => -v), {cls:'cash-row', label:1});
+
+  sectionHeader('SUMMARY');
+  trow('Total Outflows',  DATA.total_outflows.map(v => -v), {cls:'cash-row', label:1});
+  trow('Net Cash Flow',   DATA.net_cash_flow,               {cls:'cash-row', label:1, cash:1});
+  trow('Ending Cash',     DATA.ending_cash,                 {cls:'cash-row', label:1, cash:1});
+  trow('Cushion vs Min',  DATA.cushion, {cash:1});
+}
+
+const debtTypes = {
+  'Line of Credit':'Revolving',
+  'SBA Term Loan':'SBA Loan',
+  'Business Credit Card':'Credit Card'
+};
+const debtIssue = {
+  'Line of Credit':{cls:'', msg:'Interest-only, current'},
+  'SBA Term Loan':{cls:'', msg:'Current'},
+  'Business Credit Card':{cls:'', msg:'Paid in full monthly'}
+};
+
+document.querySelectorAll('#horizonPills button').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('#horizonPills button').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    H = parseInt(b.getAttribute('data-horizon'));
+    renderTactical();
+  });
+});
+document.querySelectorAll('#trajectoryToggle button').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('#trajectoryToggle button').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    trajectoryView = b.getAttribute('data-trajectory');
+    renderTactical();
+  });
+});
+
+renderTactical();
+
+// ============================================================================
+// SPEND SIMULATOR
+// ============================================================================
+(function(){
+  const MIN = DATA.min_cash;
+  const N = 13;
+  const baseEnding = DATA.ending_cash.slice(0, N);
+  const simLabels = DATA.week_dates.slice(0, N).map((d,i)=>'W'+(i+1)+' · '+dShort(d));
+
+  const weekSel = document.getElementById('simWeek');
+  for(let i=0;i<N;i++){
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = 'W'+(i+1)+' ('+dShort(DATA.week_dates[i])+')';
+    weekSel.appendChild(opt);
+  }
+
+  function simulate(amount, weekIdx, type, nWeeks){
+    const sim = baseEnding.slice();
+    for(let i=0;i<N;i++){
+      let spend;
+      if(type==='recurring'){
+        const elapsed = Math.min(Math.max(0, i - weekIdx + 1), nWeeks);
+        spend = amount * elapsed;
+      } else {
+        spend = (i >= weekIdx) ? amount : 0;
+      }
+      sim[i] = baseEnding[i] - spend;
+    }
+    return sim;
+  }
+  function earliestSafe(amount, type, nWeeks){
+    for(let w=0; w<N; w++){
+      if(Math.min(...simulate(amount, w, type, nWeeks)) >= MIN) return w;
+    }
+    return -1;
+  }
+
+  const simChart = new Chart(document.getElementById('chartSim'), {
+    type:'line',
+    data:{ labels: simLabels, datasets:[
+      {label:'Baseline', data: baseEnding, borderColor:'#9CA3AF', borderWidth:1.5, borderDash:[5,4], pointRadius:0, tension:.25, fill:false},
+      {label:'With purchase', data: baseEnding.slice(), borderColor:'#4F46E5', backgroundColor:'rgba(79,70,229,.08)', borderWidth:2.5, pointRadius:0, tension:.25, fill:true},
+      {label:'Min threshold', data: Array(N).fill(MIN), borderColor:'#DC2626', borderDash:[6,4], borderWidth:1.5, pointRadius:0, fill:false}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:true,position:'bottom',labels:{font:{family:'Assistant',size:11},boxWidth:12}},
+               tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmtSigned(c.parsed.y)}}},
+      scales:{y:{ticks:{callback:v=>'$'+(v/1000).toFixed(0)+'k',color:'#6B6B6B',font:{family:'Assistant',size:11}},grid:{color:'#F0F1F8'}},
+              x:{ticks:{color:'#6B6B6B',font:{family:'Assistant',size:10}},grid:{display:false}}}}
+  });
+
+  function render(){
+    const amount    = parseFloat(document.getElementById('simAmount').value) || 0;
+    const weekIdx   = parseInt(document.getElementById('simWeek').value) || 0;
+    const necessity = document.getElementById('simNecessity').value;
+    const type      = document.getElementById('simType').value;
+    const nWeeks    = parseInt(document.getElementById('simWeeks').value) || 1;
+    document.getElementById('simWeeksField').style.display = (type==='recurring') ? 'flex' : 'none';
+
+    const resultEl = document.getElementById('simResult');
+    if(amount <= 0){
+      resultEl.innerHTML = '<span class="sim-placeholder">Enter a dollar amount to see how the purchase would affect your cash position. Try a $90,000 office buildout, or a recurring $2,400/wk for a new senior hire.</span>';
+      simChart.data.datasets[1].data = baseEnding.slice();
+      simChart.update();
+      return;
+    }
+
+    const sim = simulate(amount, weekIdx, type, nWeeks);
+    simChart.data.datasets[1].data = sim;
+    simChart.update();
+
+    const newLow    = Math.min(...sim);
+    const newLowIdx = sim.indexOf(newLow);
+    const breachIdx = sim.findIndex(v => v < MIN);
+    const baseLow   = Math.min(...baseEnding);
+    const headroom  = newLow - MIN;
+    const totalSpend = (type==='recurring') ? amount*nWeeks : amount;
+
+    let status, statusText, reco;
+    if(breachIdx === -1){
+      if(headroom > 25000){
+        status='g'; statusText='GREEN — Safe';
+        reco='This fits comfortably. Lowest projected cash stays at <b>'+fmtSigned(newLow)+'</b>, well above the '+fmt(MIN)+' floor.';
+      } else {
+        status='y'; statusText='YELLOW — Tight but OK';
+        reco='Doable, but it pulls your lowest projected cash to <b>'+fmtSigned(newLow)+'</b> (only '+fmt(headroom)+' above the floor) the week of '+dShort(DATA.week_dates[newLowIdx])+'.';
+      }
+    } else {
+      const safeW = earliestSafe(amount, type, nWeeks);
+      if(safeW === -1){
+        status='r'; statusText='RED — Not affordable in this window';
+        reco='At <b>'+fmt(totalSpend)+'</b>, no week in the next 13 fits without breaching the '+fmt(MIN)+' floor. Reduce the amount, defer beyond the window, or free up cash first.';
+      } else if(safeW > weekIdx){
+        status='defer'; statusText='DEFER — Safe starting W'+(safeW+1);
+        reco='At your chosen week it breaches the floor (lowest <b>'+fmtSigned(newLow)+'</b>). Wait until <b>W'+(safeW+1)+' ('+dShort(DATA.week_dates[safeW])+')</b> and it fits.';
+      } else {
+        status='r'; statusText='RED — Breaches the floor';
+        reco='This breaches the '+fmt(MIN)+' floor (lowest <b>'+fmtSigned(newLow)+'</b> in W'+(newLowIdx+1)+'). Reduce the amount or free up cash first.';
+      }
+    }
+
+    let necLine = '';
+    if(necessity==='critical'){
+      necLine = '<div class="sim-line"><b>Necessity: Critical.</b> If this is truly essential (payroll, a signed-contract cost), plan to make it work even if tight &mdash; but know the impact above and line up a backstop.</div>';
+    } else if(necessity==='nice' && status!=='g'){
+      necLine = '<div class="sim-line"><b>Necessity: Nice-to-have.</b> Discretionary + tight cash &mdash; default recommendation is defer or skip.</div>';
+    } else if(necessity==='important' && status==='r'){
+      necLine = '<div class="sim-line"><b>Necessity: Important.</b> Weigh the cost of delay against the cash risk; consider a smaller amount or a payment plan.</div>';
+    }
+
+    resultEl.innerHTML =
+      '<span class="verdict '+status+'">'+statusText+'</span>'
+      + '<div class="sim-line">'+reco+'</div>'
+      + '<div class="sim-line">Spend: <b>'+fmt(totalSpend)+'</b>'+(type==='recurring'?(' ('+fmt(amount)+'/wk × '+nWeeks+' weeks)'):'')+' starting W'+(weekIdx+1)+'. New lowest: <b>'+fmtSigned(newLow)+'</b> (was '+fmtSigned(baseLow)+').</div>'
+      + necLine;
+  }
+
+  ['simAmount','simWeek','simNecessity','simType','simWeeks'].forEach(id=>{
+    const el = document.getElementById(id);
+    el.addEventListener('input', render);
+    el.addEventListener('change', render);
+  });
+  render();
+})();
+</script>
+</body>
+</html>
